@@ -1,0 +1,79 @@
+versi: '3.8'
+x-umum:
+  basis data:
+    &db-lingkungan
+    # Jangan hapus "&db-password" dari akhir baris di bawah ini, ini penting
+    # untuk fungsionalitas Panel.
+    MYSQL_PASSWORD: &db-kata sandi "GANTI_SAYA"
+    PASSWORD_ROOT_MYSQL: "GANTI_SAYA_JUGA"
+  panel:
+    &panel-lingkungan
+    # URL ini harus menjadi URL yang dirutekan proxy terbalik Anda ke server panel
+    APP_URL: "https://pterodactyl.example.com"
+    # Daftar zona waktu yang valid dapat ditemukan di sini: http://php.net/manual/en/timezones.php
+    APP_TIMEZONE: "UTC"
+    APP_SERVICE_AUTHOR: "noreply@example.com"
+    TRUSTED_PROXIES: "*" # Setel ini ke IP proksi Anda
+    # Batalkan komentar pada baris di bawah dan atur ke nilai yang tidak kosong jika Anda ingin menggunakan Let's Encrypt
+    # untuk membuat sertifikat SSL untuk Panel.
+    #EMAIL_LE: ""
+  surat:
+    &mail-lingkungan
+    MAIL_FROM: "noreply@example.com"
+    PENGEMUDI_EMAIL: "smtp"
+    MAIL_HOST: "surat"
+    PORT_SURAT: "1025"
+    MAIL_USERNAME: ""
+    PASSWORD_EMAIL: ""
+    MAIL_ENCRYPTION: "benar"
+ #
+# ------------------------------------------------- -----------------------------------------
+# ZONA BERBAHAYA DI BAWAH
+#
+# Sisa berkas ini kemungkinan tidak perlu diubah. Harap lakukan modifikasi saja
+# di bawah jika Anda mengerti apa yang Anda lakukan.
+#
+jasa:
+  basis data:
+    gambar: mariadb:10.5
+    mulai ulang: selalu
+    perintah: --default-authentication-plugin=mysql_native_password
+    volume:
+      - "/srv/pterodactyl/database:/var/lib/mysql"
+    lingkungan:
+      <<: *db-lingkungan
+      MYSQL_DATABASE: "panel"
+      MYSQL_USER: "pterodactyl"
+  cache:
+    gambar: redis:alpen
+    mulai ulang: selalu
+  panel:
+    gambar: ghcr.io/pterodactyl/panel:latest
+    mulai ulang: selalu
+    port:
+      - "80:80"
+      - "443:443"
+    tautan:
+      - basis data
+      - cache
+    volume:
+      - "/srv/pterodactyl/var/:/app/var/"
+      - "/srv/pterodactyl/nginx/:/etc/nginx/http.d/"
+      - "/srv/pterodactyl/sertifikat/:/etc/letsencrypt/"
+      - "/srv/pterodactyl/logs/:/aplikasi/penyimpanan/logs"
+    lingkungan:
+      <<: [*lingkungan-panel, *lingkungan-mail]
+      DB_PASSWORD: *kata sandi db
+      APP_ENV: "produksi"
+      APP_ENVIRONMENT_ONLY: "salah"
+      CACHE_DRIVER: "redis"
+      PENGEMUDI_SESI: "redis"
+      QUEUE_DRIVER: "redis"
+      REDIS_HOST: "tembolok"
+      DB_HOST: "basis data"
+      DB_PELABUHAN: "3306"
+jaringan:
+  bawaan:
+    ipam:
+      konfigurasi:
+        - subnet: 172.20.0.0/16
